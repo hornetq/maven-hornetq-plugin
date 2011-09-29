@@ -9,16 +9,61 @@
     <dependencies>
         <dependency>
             <groupId>org.hornetq</groupId>
-            <artifactId>hornetq-maven-plugin</artifactId>
+            <artifactId>maven-hornetq-plugin</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.hornetq</groupId>
+            <artifactId>hornetq-core-client</artifactId>
+            <version>2.2.6.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hornetq</groupId>
+            <artifactId>hornetq-jms-client</artifactId>
+            <version>2.2.6.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.netty</groupId>
+            <artifactId>netty</artifactId>
+            <version>3.2.3.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.javaee</groupId>
+            <artifactId>jboss-jms-api</artifactId>
+            <version>1.1.0.GA</version>
+        </dependency>
+       <dependency>
+         <groupId>org.testng</groupId>
+         <artifactId>testng</artifactId>
+         <version>5.12.1</version>
+         <scope>test</scope>
+       </dependency>
     </dependencies>
 
     <build>
         <plugins>
+           <!--<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>surefire-it</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <skip>false</skip>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>-->
             <plugin>
                 <groupId>org.hornetq</groupId>
-                <artifactId>hornetq-maven-plugin</artifactId>
+                <artifactId>maven-hornetq-plugin</artifactId>
                 <version>1.0-SNAPSHOT</version>
                 <executions>
                     <execution>
@@ -26,26 +71,19 @@
                         <goals>
                             <goal>start</goal>
                         </goals>
-                        <phase>test</phase>
-                    </execution>
-                    <execution>
-                        <id>runClient</id>
-                        <goals>
-                            <goal>runClient</goal>
-                        </goals>
-                        <phase>test</phase>
+                        <phase>pre-integration-test</phase>
                     </execution>
                     <execution>
                         <id>stop</id>
                         <goals>
                             <goal>stop</goal>
                         </goals>
-                        <phase>test</phase>
+                        <phase>post-integration-test</phase>
                     </execution>
                 </executions>
                 <configuration>
                     <waitOnStart>false</waitOnStart>
-                    <useFileConfiguration>false</useFileConfiguration>
+                    <hornetqConfigurationDir>./target/test-classes/hornetq/</hornetqConfigurationDir>
                 </configuration>
             </plugin>
         </plugins>

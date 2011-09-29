@@ -11,6 +11,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 /**
+ * @requiresDependencyResolution test
  * @goal runClient
  */
 public class HornetQClientPlugin extends AbstractMojo

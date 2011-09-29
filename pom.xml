@@ -1,7 +1,7 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.hornetq</groupId>
-    <artifactId>hornetq-maven-plugin</artifactId>
+    <artifactId>maven-hornetq-plugin</artifactId>
     <packaging>maven-plugin</packaging>
     <version>1.0-SNAPSHOT</version>
     <name>HornetQ Maven Plugin</name>
@@ -12,6 +12,16 @@
             <artifactId>maven-plugin-api</artifactId>
             <version>2.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>2.0</version>
+        </dependency>
+       <dependency>
+          <groupId>classworlds</groupId>
+          <artifactId>classworlds</artifactId>
+          <version>1.1</version>
+       </dependency>
         <dependency>
             <groupId>org.hornetq</groupId>
             <artifactId>hornetq-core</artifactId>
