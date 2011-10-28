@@ -11,7 +11,9 @@ import org.hornetq.core.config.impl.ConfigurationImpl;
 import org.hornetq.core.config.impl.FileConfiguration;
 import org.hornetq.core.server.HornetQServer;
 import org.hornetq.core.server.JournalType;
+import org.hornetq.core.server.NodeManager;
 import org.hornetq.core.server.impl.HornetQServerImpl;
+import org.hornetq.server.InVMNodeManager;
 import org.hornetq.jms.server.JMSServerManager;
 import org.hornetq.jms.server.impl.JMSServerManagerImpl;
 import org.hornetq.spi.core.security.HornetQSecurityManagerImpl;
@@ -19,10 +21,9 @@ import org.jnp.server.Main;
 import org.jnp.server.NamingBeanImpl;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.net.URL;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 
 /**
@@ -60,6 +61,13 @@ public class HornetQStartPlugin extends AbstractMojo
     */
    private Boolean useJndi;
 
+   /**
+   * @parameter nodeId
+   */
+   private String nodeId;
+
+   private static Map<String, NodeManager> managerMap = new HashMap<String, NodeManager>();
+
 
    public void execute() throws MojoExecutionException, MojoFailureException
    {
@@ -95,7 +103,23 @@ public class HornetQStartPlugin extends AbstractMojo
             configuration.setJournalType(JournalType.NIO);
          }
 
-         HornetQServer server = new HornetQServerImpl(configuration, null, new HornetQSecurityManagerImpl());
+         HornetQServer server;
+
+         if(nodeId != null)
+         {
+             InVMNodeManager nodeManager = (InVMNodeManager) managerMap.get(nodeId);
+             if(nodeManager == null)
+             {
+                 nodeManager = new InVMNodeManager();
+                 managerMap.put(nodeId, nodeManager);
+             }
+             server = new InVMNodeManagerServer(configuration, ManagementFactory.getPlatformMBeanServer(), new HornetQSecurityManagerImpl(), nodeManager);
+         }
+         else
+         {
+            server = new HornetQServerImpl(configuration, ManagementFactory.getPlatformMBeanServer(), new HornetQSecurityManagerImpl());
+         }
+
          final JMSServerManager manager = new JMSServerManagerImpl(server);
          manager.start();
 
@@ -113,9 +137,10 @@ public class HornetQStartPlugin extends AbstractMojo
                Thread.sleep(500);
             }
             manager.stop();
-         } else
+         }
+         else
          {
-            String dirName = System.getProperty("hornetq.config.dir", ".");
+            String dirName = hornetqConfigurationDir != null?hornetqConfigurationDir:".";
             final File file = new File(dirName + "/STOP_ME");
             if (file.exists())
             {

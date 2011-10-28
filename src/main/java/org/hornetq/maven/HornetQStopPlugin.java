@@ -18,11 +18,17 @@ import java.io.IOException;
  */
 public class HornetQStopPlugin extends AbstractMojo
 {
+
+   /**
+    * @parameter
+    */
+   private String hornetqConfigurationDir;
+
     public void execute() throws MojoExecutionException, MojoFailureException
     {
         try
         {
-            String dirName = System.getProperty("hornetq.config.dir", ".");
+            String dirName = hornetqConfigurationDir != null?hornetqConfigurationDir:".";
             final File file = new File(dirName + "/STOP_ME");
             file.createNewFile();
             try
