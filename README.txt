@@ -1,1 +1,0 @@
-to install run 'mvn install'

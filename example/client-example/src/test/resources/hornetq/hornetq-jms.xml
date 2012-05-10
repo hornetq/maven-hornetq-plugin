@@ -22,6 +22,10 @@
       </entries>
    </connection-factory>
 
+   <queue name="exampleQueue">
+      <entry name="/queue/exampleQueue"/>
+   </queue>
+
    <queue name="DLQ">
       <entry name="/queue/DLQ"/>
    </queue>

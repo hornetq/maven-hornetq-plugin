@@ -22,7 +22,6 @@ import org.jnp.server.NamingBeanImpl;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
-import java.net.URL;
 import java.util.*;
 
 
@@ -30,9 +29,9 @@ import java.util.*;
  * @author <a href="mailto:andy.taylor@jboss.com">Andy Taylor</a>
  *         Date: 8/18/11
  *         Time: 11:21 AM
- */
-
-/**
+ *
+ * @phase verify
+ *
  * @goal start
  */
 public class HornetQStartPlugin extends AbstractMojo
@@ -61,10 +60,25 @@ public class HornetQStartPlugin extends AbstractMojo
     */
    private Boolean useJndi;
 
-   /**
-   * @parameter nodeId
+  /**
+   * @parameter
    */
    private String nodeId;
+
+  /**
+   * @parameter default-value=localhost
+   */
+   private String jndiHost;
+
+   /**
+   * @parameter default-value=1099
+   */
+   private int jndiPort;
+
+   /**
+   * @parameter default-value=1098
+   */
+   private int jndiRmiPort;
 
    private static Map<String, NodeManager> managerMap = new HashMap<String, NodeManager>();
 
@@ -73,18 +87,18 @@ public class HornetQStartPlugin extends AbstractMojo
    {
       try
       {
+         final Main main = useJndi?new Main() : null;
          if (useJndi)
          {
             System.setProperty("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
             System.setProperty("java.naming.factory.url.pkgs", "org.jboss.naming:org.jnp.interfaces");
-            Main main = new Main();
             NamingBeanImpl namingBean = new NamingBeanImpl();
             namingBean.start();
             main.setNamingInfo(namingBean);
-            main.setBindAddress("localhost");
-            main.setPort(1099);
-            main.setRmiBindAddress("localhost");
-            main.setRmiPort(1098);
+            main.setBindAddress(jndiHost);
+            main.setPort(jndiPort);
+            main.setRmiBindAddress(jndiHost);
+            main.setRmiPort(jndiRmiPort);
             main.start();
          }
 
@@ -93,7 +107,7 @@ public class HornetQStartPlugin extends AbstractMojo
          {
             extendPluginClasspath(hornetqConfigurationDir);
             configuration = new FileConfiguration();
-            File file = new File(hornetqConfigurationDir + "hornetq-configuration.xml");
+            File file = new File(hornetqConfigurationDir + "/" + "hornetq-configuration.xml");
             ((FileConfiguration) configuration).setConfigurationUrl(file.toURI().toURL().toExternalForm());
             ((FileConfiguration) configuration).start();
          }
@@ -136,7 +150,13 @@ public class HornetQStartPlugin extends AbstractMojo
             {
                Thread.sleep(500);
             }
+
             manager.stop();
+            if(main != null)
+            {
+               main.stop();
+            }
+            file.delete();
          }
          else
          {
@@ -162,6 +182,11 @@ public class HornetQStartPlugin extends AbstractMojo
                         try
                         {
                            manager.stop();
+                           if (main != null)
+                           {
+                              main.stop();
+                           }
+                           file.delete();
                         } catch (Exception e)
                         {
                            e.printStackTrace();
@@ -186,16 +211,18 @@ public class HornetQStartPlugin extends AbstractMojo
       try
       {
          realm = world.newRealm(
-               "maven.plugin." + getClass().getSimpleName(),
+               "maven.plugin." + getClass().getSimpleName() + ((nodeId == null)?"":nodeId),
                Thread.currentThread().getContextClassLoader()
          );
             File elementFile = new File(element);
             getLog().debug("Adding element to plugin classpath" + elementFile.getPath());
             realm.addConstituent(elementFile.toURI().toURL());
-      } catch (Exception ex)
+      }
+      catch (Exception ex)
       {
          throw new MojoExecutionException(ex.toString(), ex);
       }
+      System.out.println(realm.getConstituents());
       Thread.currentThread().setContextClassLoader(realm.getClassLoader());
    }
 
