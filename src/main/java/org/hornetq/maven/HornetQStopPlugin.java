@@ -14,6 +14,7 @@ import java.io.IOException;
  */
 
 /**
+ * @phase verify
  * @goal stop
  */
 public class HornetQStopPlugin extends AbstractMojo
@@ -24,26 +25,38 @@ public class HornetQStopPlugin extends AbstractMojo
     */
    private String hornetqConfigurationDir;
 
-    public void execute() throws MojoExecutionException, MojoFailureException
-    {
-        try
-        {
-            String dirName = hornetqConfigurationDir != null?hornetqConfigurationDir:".";
-            final File file = new File(dirName + "/STOP_ME");
-            file.createNewFile();
+   public void execute() throws MojoExecutionException, MojoFailureException
+   {
+      try
+      {
+         String dirName = hornetqConfigurationDir != null ? hornetqConfigurationDir : ".";
+         final File file = new File(dirName + "/" + "/STOP_ME");
+         file.createNewFile();
+         long time = System.currentTimeMillis();
+         while(time + 5000 > System.currentTimeMillis())
+         {
+            if(!file.exists())
+            {
+               break;
+            }
             try
             {
-                Thread.sleep(1000);
+               Thread.sleep(200);
             }
             catch (InterruptedException e)
             {
-                e.printStackTrace();
+               //ignore
             }
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-            throw new MojoExecutionException(e.getMessage());
-        }
-    }
+         }
+         if(file.exists())
+         {
+            throw new MojoExecutionException("looks like the server hasn't been stopped");
+         }
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+         throw new MojoExecutionException(e.getMessage());
+      }
+   }
 }
