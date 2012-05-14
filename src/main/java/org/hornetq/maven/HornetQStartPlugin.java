@@ -1,3 +1,15 @@
+/*
+ * Copyright 2009 Red Hat, Inc.
+ * Red Hat licenses this file to you under the Apache License, version
+ * 2.0 (the "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied.  See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
 package org.hornetq.maven;
 
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
@@ -6,23 +18,11 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.classworlds.ClassRealm;
 import org.codehaus.classworlds.ClassWorld;
-import org.hornetq.core.config.Configuration;
-import org.hornetq.core.config.impl.ConfigurationImpl;
-import org.hornetq.core.config.impl.FileConfiguration;
-import org.hornetq.core.server.HornetQServer;
-import org.hornetq.core.server.JournalType;
-import org.hornetq.core.server.NodeManager;
-import org.hornetq.core.server.impl.HornetQServerImpl;
-import org.hornetq.server.InVMNodeManager;
-import org.hornetq.jms.server.JMSServerManager;
-import org.hornetq.jms.server.impl.JMSServerManagerImpl;
-import org.hornetq.spi.core.security.HornetQSecurityManagerImpl;
-import org.jnp.server.Main;
-import org.jnp.server.NamingBeanImpl;
+import org.hornetq.server.HornetQBootstrap;
+import org.hornetq.server.SpawnedHornetQBootstrap;
+import org.hornetq.server.SpawnedVMSupport;
 
 import java.io.File;
-import java.lang.management.ManagementFactory;
-import java.util.*;
 
 
 /**
@@ -80,126 +80,61 @@ public class HornetQStartPlugin extends AbstractMojo
    */
    private int jndiRmiPort;
 
-   private static Map<String, NodeManager> managerMap = new HashMap<String, NodeManager>();
+   /**
+    * @parameter default-value=false;
+    */
+   private Boolean fork;
 
 
    public void execute() throws MojoExecutionException, MojoFailureException
    {
-      try
+      if(fork)
       {
-         final Main main = useJndi?new Main() : null;
-         if (useJndi)
+         try
          {
-            System.setProperty("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
-            System.setProperty("java.naming.factory.url.pkgs", "org.jboss.naming:org.jnp.interfaces");
-            NamingBeanImpl namingBean = new NamingBeanImpl();
-            namingBean.start();
-            main.setNamingInfo(namingBean);
-            main.setBindAddress(jndiHost);
-            main.setPort(jndiPort);
-            main.setRmiBindAddress(jndiHost);
-            main.setRmiPort(jndiRmiPort);
-            main.start();
+            PluginDescriptor pd = (PluginDescriptor) getPluginContext().get("pluginDescriptor");
+            Process p  = SpawnedVMSupport.spawnVM(pd.getArtifacts(),
+                  "HornetQServer_" + (nodeId != null?nodeId:""),
+                  SpawnedHornetQBootstrap.class.getName(),
+                  "",
+                  true,
+                  "STARTED::",
+                  "FAILED::",
+                  ".",
+                  hornetqConfigurationDir,
+                  false,
+                  useJndi.toString(),
+                  jndiHost,
+                  ""+jndiPort,
+                  ""+jndiRmiPort,
+                  hornetqConfigurationDir,
+                  ""+waitOnStart,
+                  nodeId);
+            if(waitOnStart)
+            {
+               p.waitFor();
+            }
          }
-
-         Configuration configuration;
+         catch (Throwable e)
+         {
+            e.printStackTrace();
+            throw new MojoExecutionException(e.getMessage());
+         }
+      }
+      else
+      {
+         HornetQBootstrap bootstrap = new HornetQBootstrap(useJndi, jndiHost, jndiPort, jndiRmiPort, hornetqConfigurationDir, waitOnStart, nodeId);
          if (hornetqConfigurationDir != null)
          {
             extendPluginClasspath(hornetqConfigurationDir);
-            configuration = new FileConfiguration();
-            File file = new File(hornetqConfigurationDir + "/" + "hornetq-configuration.xml");
-            ((FileConfiguration) configuration).setConfigurationUrl(file.toURI().toURL().toExternalForm());
-            ((FileConfiguration) configuration).start();
          }
-         else
+         try
          {
-            configuration = new ConfigurationImpl();
-            configuration.setJournalType(JournalType.NIO);
-         }
-
-         HornetQServer server;
-
-         if(nodeId != null)
+            bootstrap.execute();
+         } catch (Exception e)
          {
-             InVMNodeManager nodeManager = (InVMNodeManager) managerMap.get(nodeId);
-             if(nodeManager == null)
-             {
-                 nodeManager = new InVMNodeManager();
-                 managerMap.put(nodeId, nodeManager);
-             }
-             server = new InVMNodeManagerServer(configuration, ManagementFactory.getPlatformMBeanServer(), new HornetQSecurityManagerImpl(), nodeManager);
+            throw new MojoExecutionException(e.getMessage(), e);
          }
-         else
-         {
-            server = new HornetQServerImpl(configuration, ManagementFactory.getPlatformMBeanServer(), new HornetQSecurityManagerImpl());
-         }
-
-         final JMSServerManager manager = new JMSServerManagerImpl(server);
-         manager.start();
-
-         if (waitOnStart)
-         {
-            String dirName = System.getProperty("hornetq.config.dir", ".");
-            final File file = new File(dirName + "/STOP_ME");
-            if (file.exists())
-            {
-               file.delete();
-            }
-
-            while (!file.exists())
-            {
-               Thread.sleep(500);
-            }
-
-            manager.stop();
-            if(main != null)
-            {
-               main.stop();
-            }
-            file.delete();
-         }
-         else
-         {
-            String dirName = hornetqConfigurationDir != null?hornetqConfigurationDir:".";
-            final File file = new File(dirName + "/STOP_ME");
-            if (file.exists())
-            {
-               file.delete();
-            }
-            final Timer timer = new Timer("HornetQ Server Shutdown Timer", true);
-            timer.scheduleAtFixedRate(new TimerTask()
-            {
-               @Override
-               public void run()
-               {
-                  if (file.exists())
-                  {
-                     try
-                     {
-                        timer.cancel();
-                     } finally
-                     {
-                        try
-                        {
-                           manager.stop();
-                           if (main != null)
-                           {
-                              main.stop();
-                           }
-                           file.delete();
-                        } catch (Exception e)
-                        {
-                           e.printStackTrace();
-                        }
-                     }
-                  }
-               }
-            }, 500, 500);
-         }
-      } catch (Exception e)
-      {
-         e.printStackTrace();
-         throw new MojoExecutionException(e.getMessage());
       }
    }
 
@@ -225,6 +160,4 @@ public class HornetQStartPlugin extends AbstractMojo
       System.out.println(realm.getConstituents());
       Thread.currentThread().setContextClassLoader(realm.getClassLoader());
    }
-
-
 }
