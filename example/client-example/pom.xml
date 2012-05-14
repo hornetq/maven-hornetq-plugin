@@ -18,7 +18,7 @@
    <dependencies>
       <dependency>
          <groupId>org.hornetq</groupId>
-         <artifactId>maven-hornetq-plugin</artifactId>
+         <artifactId>hornetq-maven-plugin</artifactId>
          <version>1.0-SNAPSHOT</version>
       </dependency>
       <dependency>
@@ -95,6 +95,8 @@
             <configuration>
                <waitOnStart>false</waitOnStart>
                <hornetqConfigurationDir>${basedir}/target/test-classes/hornetq/</hornetqConfigurationDir>
+               <!--uncomment this to fork the HornetQ server in a different process-->
+               <!--<fork>true</fork>-->
             </configuration>
          </plugin>
       </plugins>
