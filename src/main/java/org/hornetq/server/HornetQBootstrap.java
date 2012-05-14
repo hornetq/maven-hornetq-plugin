@@ -66,6 +66,8 @@ public class HornetQBootstrap
 
    private static Map<String, NodeManager> managerMap = new HashMap<String, NodeManager>();
 
+   private boolean spawned = false;
+
 
    public HornetQBootstrap(Boolean useJndi, String jndiHost, int jndiPort, int jndiRmiPort, String hornetqConfigurationDir, Boolean waitOnStart, String nodeId)
    {
@@ -87,6 +89,7 @@ public class HornetQBootstrap
       this.hornetqConfigurationDir = args[4];
       this.waitOnStart = Boolean.valueOf(args[5]);;
       this.nodeId = args[6];
+      spawned = true;
    }
 
    public void execute() throws Exception
@@ -189,7 +192,7 @@ public class HornetQBootstrap
    }
 
 
-   private static class ServerStopTimerTask extends TimerTask
+   private class ServerStopTimerTask extends TimerTask
    {
       private final File stopFile;
       private final Timer timer;
@@ -214,7 +217,8 @@ public class HornetQBootstrap
             try
             {
                timer.cancel();
-            } finally
+            }
+            finally
             {
                try
                {
@@ -224,10 +228,16 @@ public class HornetQBootstrap
                      main.stop();
                   }
                   stopFile.delete();
-               } catch (Exception e)
+               }
+               catch (Exception e)
                {
                   e.printStackTrace();
                }
+            }
+            if(spawned)
+            {
+               System.out.println("halting Runtime");
+               Runtime.getRuntime().halt(666);
             }
          }
          else if(killFile.exists())

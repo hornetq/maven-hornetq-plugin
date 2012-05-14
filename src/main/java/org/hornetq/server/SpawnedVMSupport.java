@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -51,7 +53,7 @@ public class SpawnedVMSupport
    public static Process spawnVM(List<DefaultArtifact> arts,
                                  final String logName,
                                  final String className,
-                                 final String vmargs,
+                                 final Properties properties,
                                  final boolean logOutput,
                                  final String success,
                                  final String failure,
@@ -63,8 +65,15 @@ public class SpawnedVMSupport
       StringBuffer sb = new StringBuffer();
 
       sb.append("java").append(' ');
-      String vmarg = vmargs;
-
+      StringBuffer props = new StringBuffer();
+      if(properties != null)
+      {
+         for (Map.Entry<Object, Object> entry : properties.entrySet())
+         {
+            props.append("-D").append(entry.getKey()).append("=").append(entry.getValue()).append(" ");
+         }
+      }
+      String vmarg = props.toString();
       String osName = System.getProperty("os.name");
       osName = (osName != null) ? osName.toLowerCase() : "";
       boolean isWindows = osName.contains("win");
@@ -100,7 +109,7 @@ public class SpawnedVMSupport
       sb.append("-Djava.library.path=").append(libPath).append(" ");
       if(debug)
       {
-         sb.append("-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005 ");
+         sb.append("-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 ");
       }
 
       sb.append(className).append(' ');

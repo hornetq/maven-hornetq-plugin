@@ -23,6 +23,7 @@ import org.hornetq.server.SpawnedHornetQBootstrap;
 import org.hornetq.server.SpawnedVMSupport;
 
 import java.io.File;
+import java.util.Properties;
 
 
 /**
@@ -85,9 +86,24 @@ public class HornetQStartPlugin extends AbstractMojo
     */
    private Boolean fork;
 
+   /**
+    * @parameter default-value=false
+    */
+   private Boolean debug;
+
+      /**
+     * My Properties.
+     *
+     * @parameter
+     */
+    private Properties systemProperties;
 
    public void execute() throws MojoExecutionException, MojoFailureException
    {
+      if(systemProperties != null && !systemProperties.isEmpty())
+      {
+         System.getProperties().putAll(systemProperties);
+      }
       if(fork)
       {
          try
@@ -96,13 +112,13 @@ public class HornetQStartPlugin extends AbstractMojo
             Process p  = SpawnedVMSupport.spawnVM(pd.getArtifacts(),
                   "HornetQServer_" + (nodeId != null?nodeId:""),
                   SpawnedHornetQBootstrap.class.getName(),
-                  "",
+                  systemProperties,
                   true,
                   "STARTED::",
                   "FAILED::",
                   ".",
                   hornetqConfigurationDir,
-                  false,
+                  debug,
                   useJndi.toString(),
                   jndiHost,
                   ""+jndiPort,
