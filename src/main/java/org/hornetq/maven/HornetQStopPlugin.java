@@ -45,7 +45,7 @@ public class HornetQStopPlugin extends AbstractMojo
          final File file = new File(dirName + "/" + "/STOP_ME");
          file.createNewFile();
          long time = System.currentTimeMillis();
-         while(time + 5000 > System.currentTimeMillis())
+         while(System.currentTimeMillis() < time + 60000)
          {
             if(!file.exists())
             {

@@ -91,12 +91,17 @@ public class HornetQStartPlugin extends AbstractMojo
     */
    private Boolean debug;
 
-      /**
-     * My Properties.
-     *
-     * @parameter
-     */
-    private Properties systemProperties;
+   /**
+  * My Properties.
+  *
+  * @parameter
+  */
+   private Properties systemProperties;
+
+   /**
+    * @parameter default-value=STARTED::
+    */
+   private String serverStartString;
 
    public void execute() throws MojoExecutionException, MojoFailureException
    {
@@ -109,12 +114,12 @@ public class HornetQStartPlugin extends AbstractMojo
          try
          {
             PluginDescriptor pd = (PluginDescriptor) getPluginContext().get("pluginDescriptor");
-            Process p  = SpawnedVMSupport.spawnVM(pd.getArtifacts(),
+            final Process p  = SpawnedVMSupport.spawnVM(pd.getArtifacts(),
                   "HornetQServer_" + (nodeId != null?nodeId:""),
                   SpawnedHornetQBootstrap.class.getName(),
                   systemProperties,
                   true,
-                  "STARTED::",
+                  serverStartString,
                   "FAILED::",
                   ".",
                   hornetqConfigurationDir,
@@ -126,6 +131,15 @@ public class HornetQStartPlugin extends AbstractMojo
                   hornetqConfigurationDir,
                   ""+waitOnStart,
                   nodeId);
+            Runtime.getRuntime().addShutdownHook(new Thread()
+            {
+               @Override
+               public void run()
+               {
+                  //just to be on the safe side
+                  p.destroy();
+               }
+            });
             if(waitOnStart)
             {
                p.waitFor();

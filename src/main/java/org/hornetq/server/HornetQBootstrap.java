@@ -68,6 +68,16 @@ public class HornetQBootstrap
 
    private boolean spawned = false;
 
+   private Main main;
+
+   private NamingBeanImpl namingBean;
+
+   private HornetQServer server;
+
+   private Configuration configuration;
+
+   private JMSServerManager manager;
+
 
    public HornetQBootstrap(Boolean useJndi, String jndiHost, int jndiPort, int jndiRmiPort, String hornetqConfigurationDir, Boolean waitOnStart, String nodeId)
    {
@@ -96,22 +106,14 @@ public class HornetQBootstrap
    {
       try
       {
-         final Main main = useJndi?new Main() : null;
+         System.setProperty("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
+         System.setProperty("java.naming.factory.url.pkgs", "org.jboss.naming:org.jnp.interfaces");
+
          if (useJndi)
          {
-            System.setProperty("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
-            System.setProperty("java.naming.factory.url.pkgs", "org.jboss.naming:org.jnp.interfaces");
-            NamingBeanImpl namingBean = new NamingBeanImpl();
-            namingBean.start();
-            main.setNamingInfo(namingBean);
-            main.setBindAddress(jndiHost);
-            main.setPort(jndiPort);
-            main.setRmiBindAddress(jndiHost);
-            main.setRmiPort(jndiRmiPort);
-            main.start();
+            createNamingServer();
          }
 
-         Configuration configuration;
          if (hornetqConfigurationDir != null)
          {
             //extendPluginClasspath(hornetqConfigurationDir);
@@ -126,25 +128,7 @@ public class HornetQBootstrap
             configuration.setJournalType(JournalType.NIO);
          }
 
-         HornetQServer server;
-
-         if(nodeId != null && !nodeId.equals("") && !nodeId.equals("null"))
-         {
-             InVMNodeManager nodeManager = (InVMNodeManager) managerMap.get(nodeId);
-             if(nodeManager == null)
-             {
-                 nodeManager = new InVMNodeManager();
-                 managerMap.put(nodeId, nodeManager);
-             }
-             server = new InVMNodeManagerServer(configuration, ManagementFactory.getPlatformMBeanServer(), new HornetQSecurityManagerImpl(), nodeManager);
-         }
-         else
-         {
-            server = new HornetQServerImpl(configuration, ManagementFactory.getPlatformMBeanServer(), new HornetQSecurityManagerImpl());
-         }
-
-         final JMSServerManager manager = new JMSServerManagerImpl(server);
-         manager.start();
+         createServer(configuration);
 
          if (waitOnStart)
          {
@@ -180,8 +164,13 @@ public class HornetQBootstrap
             {
                killFile.delete();
             }
+            final File restartFile = new File(dirName + "/RESTART_ME");
+            if (restartFile.exists())
+            {
+               restartFile.delete();
+            }
             final Timer timer = new Timer("HornetQ Server Shutdown Timer", true);
-            timer.scheduleAtFixedRate(new ServerStopTimerTask(stopFile, killFile, timer, manager, main), 500, 500);
+            timer.scheduleAtFixedRate(new ServerStopTimerTask(stopFile, killFile, restartFile, timer), 500, 500);
          }
       }
       catch (Exception e)
@@ -191,22 +180,54 @@ public class HornetQBootstrap
       }
    }
 
+   private void createServer(Configuration configuration) throws Exception
+   {
+      if(nodeId != null && !nodeId.equals("") && !nodeId.equals("null"))
+      {
+          InVMNodeManager nodeManager = (InVMNodeManager) managerMap.get(nodeId);
+          if(nodeManager == null)
+          {
+              nodeManager = new InVMNodeManager();
+              managerMap.put(nodeId, nodeManager);
+          }
+          server = new InVMNodeManagerServer(configuration, ManagementFactory.getPlatformMBeanServer(), new HornetQSecurityManagerImpl(), nodeManager);
+      }
+      else
+      {
+         server = new HornetQServerImpl(configuration, ManagementFactory.getPlatformMBeanServer(), new HornetQSecurityManagerImpl());
+      }
+
+      manager = new JMSServerManagerImpl(server);
+      manager.start();
+   }
+
+   private void createNamingServer() throws Exception
+   {
+      main = new Main();
+      namingBean = new NamingBeanImpl();
+      namingBean.start();
+      main.setNamingInfo(namingBean);
+      main.setBindAddress(jndiHost);
+      main.setPort(jndiPort);
+      main.setRmiBindAddress(jndiHost);
+      main.setRmiPort(jndiRmiPort);
+      main.start();
+   }
+
 
    private class ServerStopTimerTask extends TimerTask
    {
       private final File stopFile;
       private final Timer timer;
-      private final JMSServerManager manager;
-      private final Main main;
       private final File killFile;
+      private File restartFile;
 
-      public ServerStopTimerTask(File stopFile, File killFile, Timer timer, JMSServerManager manager, Main main)
+      public ServerStopTimerTask(File stopFile, File killFile, File restartFile, Timer timer)
       {
          this.stopFile = stopFile;
          this.killFile = killFile;
+         this.restartFile = restartFile;
          this.timer = timer;
-         this.manager = manager;
-         this.main = main;
       }
 
       @Override
@@ -222,10 +243,16 @@ public class HornetQBootstrap
             {
                try
                {
-                  manager.stop();
+                  if (manager != null)
+                  {
+                     manager.stop();
+                     manager = null;
+                  }
+                  server = null;
                   if (main != null)
                   {
                      main.stop();
+                     main = null;
                   }
                   stopFile.delete();
                }
@@ -236,7 +263,6 @@ public class HornetQBootstrap
             }
             if(spawned)
             {
-               System.out.println("halting Runtime");
                Runtime.getRuntime().halt(666);
             }
          }
@@ -245,10 +271,34 @@ public class HornetQBootstrap
             try
             {
                manager.getHornetQServer().stop(true);
+               manager.stop();
+               manager = null;
+               server = null;
+               main.stop();
+               main = null;
+               namingBean.stop();
+               namingBean = null;
+               killFile.delete();
             }
             catch (Exception e)
             {
                e.printStackTrace();
+            }
+         }
+         else if(restartFile.exists())
+         {
+            try
+            {
+               if(useJndi)
+               {
+                  createNamingServer();
+               }
+               createServer(configuration);
+               restartFile.delete();
+            }
+            catch (Exception e)
+            {
+               e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
          }
       }
