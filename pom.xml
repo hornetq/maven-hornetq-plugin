@@ -6,11 +6,16 @@
    <version>1.0.0</version>
 
    <name>HornetQ Maven Plugin</name>
-      <organization>
+   <description>A plugin for running a HornetQ Server</description>
+   <url>http://hornetq.org</url>
+   <organization>
       <name>JBoss, a division of Red Hat</name>
       <url>http://www.jboss.org/</url>
    </organization>
 
+   <scm>
+      <url>https://github.com/hornetq/maven-hornetq-plugin</url>
+   </scm>
    <licenses>
       <license>
          <name>ASL 2.0</name>
