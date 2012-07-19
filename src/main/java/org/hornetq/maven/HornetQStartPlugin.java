@@ -21,6 +21,7 @@ import org.codehaus.classworlds.ClassWorld;
 import org.hornetq.server.HornetQBootstrap;
 import org.hornetq.server.SpawnedHornetQBootstrap;
 import org.hornetq.server.SpawnedVMSupport;
+import org.hornetq.spi.core.security.HornetQSecurityManager;
 
 import java.io.File;
 import java.util.Properties;
@@ -103,6 +104,11 @@ public class HornetQStartPlugin extends AbstractMojo
     */
    private String serverStartString;
 
+   /**
+    * @parameter
+    */
+   private HornetQSecurityManager securityManager;
+
    public void execute() throws MojoExecutionException, MojoFailureException
    {
       if(systemProperties != null && !systemProperties.isEmpty())
@@ -153,7 +159,7 @@ public class HornetQStartPlugin extends AbstractMojo
       }
       else
       {
-         HornetQBootstrap bootstrap = new HornetQBootstrap(useJndi, jndiHost, jndiPort, jndiRmiPort, hornetqConfigurationDir, waitOnStart, nodeId);
+         HornetQBootstrap bootstrap = new HornetQBootstrap(useJndi, jndiHost, jndiPort, jndiRmiPort, hornetqConfigurationDir, waitOnStart, nodeId, securityManager);
          if (hornetqConfigurationDir != null)
          {
             extendPluginClasspath(hornetqConfigurationDir);
