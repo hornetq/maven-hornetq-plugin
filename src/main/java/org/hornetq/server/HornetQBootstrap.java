@@ -31,6 +31,7 @@ import org.hornetq.core.server.impl.HornetQServerImpl;
 import org.hornetq.jms.server.JMSServerManager;
 import org.hornetq.jms.server.impl.JMSServerManagerImpl;
 import org.hornetq.maven.InVMNodeManagerServer;
+import org.hornetq.spi.core.security.HornetQSecurityManager;
 import org.hornetq.spi.core.security.HornetQSecurityManagerImpl;
 import org.jnp.server.Main;
 import org.jnp.server.NamingBeanImpl;
@@ -78,8 +79,11 @@ public class HornetQBootstrap
 
    private JMSServerManager manager;
 
+   private HornetQSecurityManager securityManager;
 
-   public HornetQBootstrap(Boolean useJndi, String jndiHost, int jndiPort, int jndiRmiPort, String hornetqConfigurationDir, Boolean waitOnStart, String nodeId)
+
+   public HornetQBootstrap(Boolean useJndi, String jndiHost, int jndiPort, int jndiRmiPort, String hornetqConfigurationDir,
+                           Boolean waitOnStart, String nodeId, HornetQSecurityManager securityManager)
    {
       this.useJndi = useJndi;
       this.jndiHost = jndiHost;
@@ -88,6 +92,7 @@ public class HornetQBootstrap
       this.hornetqConfigurationDir = hornetqConfigurationDir;
       this.waitOnStart = waitOnStart;
       this.nodeId = nodeId;
+      this.securityManager = securityManager;
    }
 
    public HornetQBootstrap(String[] args)
@@ -190,11 +195,13 @@ public class HornetQBootstrap
               nodeManager = new InVMNodeManager();
               managerMap.put(nodeId, nodeManager);
           }
-          server = new InVMNodeManagerServer(configuration, ManagementFactory.getPlatformMBeanServer(), new HornetQSecurityManagerImpl(), nodeManager);
+          server = new InVMNodeManagerServer(configuration, ManagementFactory.getPlatformMBeanServer(),
+                securityManager!=null?securityManager:new HornetQSecurityManagerImpl(), nodeManager);
       }
       else
       {
-         server = new HornetQServerImpl(configuration, ManagementFactory.getPlatformMBeanServer(), new HornetQSecurityManagerImpl());
+         server = new HornetQServerImpl(configuration, ManagementFactory.getPlatformMBeanServer(),
+               securityManager!=null?securityManager:new HornetQSecurityManagerImpl());
       }
 
       manager = new JMSServerManagerImpl(server);
