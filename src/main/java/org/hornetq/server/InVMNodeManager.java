@@ -13,10 +13,12 @@
 
 package org.hornetq.server;
 
+import org.hornetq.api.core.HornetQIllegalStateException;
 import org.hornetq.api.core.SimpleString;
 import org.hornetq.core.server.NodeManager;
 import org.hornetq.utils.UUIDGenerator;
 
+import java.io.IOException;
 import java.util.concurrent.Semaphore;
 
 import static org.hornetq.server.InVMNodeManager.State.NOT_STARTED;
@@ -42,8 +44,7 @@ public class InVMNodeManager extends NodeManager
    {
       liveLock = new Semaphore(1);
       backupLock = new Semaphore(1);
-      uuid = UUIDGenerator.getInstance().generateUUID();
-      nodeID = new SimpleString(uuid.toString());
+      setUUID(UUIDGenerator.getInstance().generateUUID());
    }
 
    @Override
@@ -141,5 +142,12 @@ public class InVMNodeManager extends NodeManager
       {
          backupLock.release();
       }
+   }
+
+   @Override
+   public SimpleString readNodeId() throws HornetQIllegalStateException,
+		IOException
+   {
+      return getNodeId();
    }
 }
