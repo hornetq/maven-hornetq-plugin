@@ -24,7 +24,11 @@ import org.hornetq.server.SpawnedVMSupport;
 import org.hornetq.spi.core.security.HornetQSecurityManager;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.util.Properties;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
 
 /**
@@ -108,13 +112,43 @@ public class HornetQStartPlugin extends AbstractMojo
     * @parameter
     */
    private HornetQSecurityManager securityManager;
+   
+   /**
+    * registers a TestClusterMBean for test clients to use.
+    * @parameter
+    */
+   private boolean testClusterManager;
 
    public void execute() throws MojoExecutionException, MojoFailureException
    {
+      if (testClusterManager)
+      {
+         try
+         {
+            createClusterManagerMBean();
+         }
+         catch (Exception e)
+         {
+            throw new MojoExecutionException("Failed to create cluster manager mbean", e);
+         }
+      }
+      
       if(systemProperties != null && !systemProperties.isEmpty())
       {
          System.getProperties().putAll(systemProperties);
       }
+      
+      String workingPath = new File(".").getAbsolutePath();
+      
+      try
+      {
+         registerNode(nodeId, workingPath, hornetqConfigurationDir, jndiPort, jndiRmiPort);
+      }
+      catch (Exception e1)
+      {
+         throw new MojoExecutionException("Failed to create cluster manager mbean", e1); 
+      }
+
       if(fork)
       {
          try
@@ -174,6 +208,22 @@ public class HornetQStartPlugin extends AbstractMojo
       }
    }
 
+   private void registerNode(String nodeId, String workingPath,
+         String hornetqConfigurationDir, int jndiPort, int jndiRmiPort) throws Exception
+   {
+      TestClusterManagerMBean control = PluginUtil.getTestClusterManager();
+      if (control != null)
+      {
+         control.registerNode(nodeId, workingPath, hornetqConfigurationDir, jndiPort, jndiRmiPort);
+      }
+   }
+
+   private void createClusterManagerMBean() throws Exception
+   {
+      MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
+      ObjectName name = ObjectName.getInstance("hornetq:module=test,type=TestClusterManager");
+      mbeanServer.registerMBean(new TestClusterManager(), name);
+   }
 
    public void extendPluginClasspath(String element) throws MojoExecutionException
    {
