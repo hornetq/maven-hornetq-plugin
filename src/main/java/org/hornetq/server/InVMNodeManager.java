@@ -32,16 +32,17 @@ import static org.hornetq.server.InVMNodeManager.State.PAUSED;
 public class InVMNodeManager extends NodeManager
 {
 
-   private Semaphore liveLock;
+   private final Semaphore liveLock;
 
-   private Semaphore backupLock;
+   private final Semaphore backupLock;
 
    public enum State {LIVE, PAUSED, FAILING_BACK, NOT_STARTED}
 
    public State state = NOT_STARTED;
 
-   public InVMNodeManager()
+   public InVMNodeManager(boolean replicatedBackup,String directory)
    {
+	  super(replicatedBackup, directory);
       liveLock = new Semaphore(1);
       backupLock = new Semaphore(1);
       setUUID(UUIDGenerator.getInstance().generateUUID());
@@ -107,15 +108,12 @@ public class InVMNodeManager extends NodeManager
    }
 
    @Override
-   public void stopBackup() throws Exception
-   {
-      backupLock.release();
-   }
-
-   @Override
    public void releaseBackup()
    {
-      releaseBackupNode();
+      if(backupLock != null)
+      {
+         backupLock.release();
+      }
    }
 
    @Override
@@ -133,15 +131,7 @@ public class InVMNodeManager extends NodeManager
    @Override
    public void interrupt()
    {
-      //To change body of implemented methods use File | Settings | File Templates.
-   }
-
-   private void releaseBackupNode()
-   {
-      if(backupLock != null)
-      {
-         backupLock.release();
-      }
+      // no-op
    }
 
    @Override
