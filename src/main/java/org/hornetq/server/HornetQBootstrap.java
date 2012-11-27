@@ -44,26 +44,24 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * @author <a href="mailto:andy.taylor@jboss.org">Andy Taylor</a>
- *         5/14/12
- *
  * This will bootstrap the HornetQ Server and also the naming server if required
+ * @author <a href="mailto:andy.taylor@jboss.org">Andy Taylor</a>
  */
 public class HornetQBootstrap
 {
-   private Boolean useJndi;
+   private final Boolean useJndi;
 
-   private String jndiHost;
+   private final String jndiHost;
 
-   private int jndiPort;
+   private final int jndiPort;
 
-   private int jndiRmiPort;
+   private final int jndiRmiPort;
 
-   private String hornetqConfigurationDir;
+   private final String hornetqConfigurationDir;
 
-   private Boolean waitOnStart;
+   private final Boolean waitOnStart;
 
-   private String nodeId;
+   private final String nodeId;
 
    private static Map<String, NodeManager> managerMap = new HashMap<String, NodeManager>();
 
@@ -192,7 +190,8 @@ public class HornetQBootstrap
           InVMNodeManager nodeManager = (InVMNodeManager) managerMap.get(nodeId);
           if(nodeManager == null)
           {
-              nodeManager = new InVMNodeManager();
+            boolean replicatedBackup = configuration.isBackup() && !configuration.isSharedStore();
+            nodeManager = new InVMNodeManager(replicatedBackup, configuration.getJournalDirectory());
               managerMap.put(nodeId, nodeManager);
           }
           server = new InVMNodeManagerServer(configuration, ManagementFactory.getPlatformMBeanServer(),
@@ -227,7 +226,7 @@ public class HornetQBootstrap
       private final File stopFile;
       private final Timer timer;
       private final File killFile;
-      private File restartFile;
+      private final File restartFile;
 
       public ServerStopTimerTask(File stopFile, File killFile, File restartFile, Timer timer)
       {
