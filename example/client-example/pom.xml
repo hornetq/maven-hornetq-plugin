@@ -2,7 +2,7 @@
    <parent>
       <groupId>org.hornetq.maven</groupId>
       <artifactId>hornetq-maven-plugin-example</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>1.1.1-SNAPSHOT</version>
    </parent>
 
    <modelVersion>4.0.0</modelVersion>
@@ -19,7 +19,7 @@
       <dependency>
          <groupId>org.hornetq</groupId>
          <artifactId>hornetq-maven-plugin</artifactId>
-         <version>1.0-SNAPSHOT</version>
+         <version>${project.version}</version>
       </dependency>
       <dependency>
          <groupId>org.jboss.javaee</groupId>
@@ -33,7 +33,7 @@
          <plugin>
             <groupId>org.hornetq</groupId>
             <artifactId>hornetq-maven-plugin</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${project.version}</version>
             <executions>
                <execution>
                   <id>start</id>
@@ -64,7 +64,7 @@
                <dependency>
                   <groupId>org.hornetq.maven</groupId>
                   <artifactId>hornetq-maven-plugin-client-example</artifactId>
-                  <version>1.0-SNAPSHOT</version>
+                  <version>${project.version}</version>
                </dependency>
                <dependency>
                   <groupId>org.hornetq</groupId>
