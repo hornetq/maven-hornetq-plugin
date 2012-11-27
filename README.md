@@ -7,12 +7,12 @@ There are 2 examples shipped, to run these you need to cd into the example direc
 
 To run the client example which shows how to run a standalone java class as a client simply
 
-```mvn verify -Pclient-example```
+```cd example && mvn verify -Pclient-example```
 
 To run the example showing an integration test run
 
-```mvn verify -Pit-example```
+```cd example && mvn verify -Pit-example```
 
 or to run both
 
-```mvn verify -Pall```
+```cd example && mvn verify -Pall```
