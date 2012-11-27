@@ -30,7 +30,6 @@ import javax.management.MBeanServer;
 
 /**
  * @author <a href="mailto:andy.taylor@jboss.org">Andy Taylor</a>
- *         10/28/11
  */
 public class InVMNodeManagerServer extends HornetQServerImpl
 {
@@ -66,7 +65,7 @@ public class InVMNodeManagerServer extends HornetQServerImpl
   }
 
   @Override
-  protected NodeManager createNodeManager(String directory)
+   protected NodeManager createNodeManager(String directory, String nodeGroupName, boolean replicatingBackup)
   {
      return nodeManager;
   }
