@@ -38,18 +38,9 @@ import org.apache.maven.artifact.DefaultArtifact;
  * @author <a href="mailto:ovidiu@feodorov.com">Ovidiu Feodorov</a>
  * @author <a href="mailto:jmesnil@redhat.com">Jeff Mesnil</a>
  * @author <a href="mailto:csuconic@redhat.com">Clebert Suconic</a>
- * @version <tt>$Revision$</tt>
  */
 public class SpawnedVMSupport
 {
-   // Constants -----------------------------------------------------
-
-
-   // Attributes ----------------------------------------------------
-
-   // Static --------------------------------------------------------
-
-
    public static Process spawnVM(List<DefaultArtifact> arts,
                                  final String logName,
                                  final String className,
@@ -248,17 +239,4 @@ public class SpawnedVMSupport
 
       }
    }
-
-   // Constructors --------------------------------------------------
-
-   // Public --------------------------------------------------------
-
-   // Package protected ---------------------------------------------
-
-   // Protected -----------------------------------------------------
-
-   // Private -------------------------------------------------------
-
-   // Inner classes -------------------------------------------------
-
 }
