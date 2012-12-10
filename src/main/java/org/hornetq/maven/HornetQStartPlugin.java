@@ -12,23 +12,24 @@
  */
 package org.hornetq.maven;
 
-import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import java.io.File;
+import java.lang.management.ManagementFactory;
+import java.util.Arrays;
+import java.util.Properties;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.codehaus.classworlds.ClassRealm;
 import org.codehaus.classworlds.ClassWorld;
 import org.hornetq.server.HornetQBootstrap;
 import org.hornetq.server.SpawnedHornetQBootstrap;
 import org.hornetq.server.SpawnedVMSupport;
 import org.hornetq.spi.core.security.HornetQSecurityManager;
-
-import java.io.File;
-import java.lang.management.ManagementFactory;
-import java.util.Properties;
-
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 
 
 /**
@@ -112,7 +113,7 @@ public class HornetQStartPlugin extends AbstractMojo
     * @parameter
     */
    private HornetQSecurityManager securityManager;
-   
+
    /**
     * registers a TestClusterMBean for test clients to use.
     * @parameter
@@ -132,21 +133,21 @@ public class HornetQStartPlugin extends AbstractMojo
             throw new MojoExecutionException("Failed to create cluster manager mbean", e);
          }
       }
-      
+
       if(systemProperties != null && !systemProperties.isEmpty())
       {
          System.getProperties().putAll(systemProperties);
       }
-      
+
       String workingPath = new File(".").getAbsolutePath();
-      
+
       try
       {
          registerNode(nodeId, workingPath, hornetqConfigurationDir, jndiPort, jndiRmiPort);
       }
       catch (Exception e1)
       {
-         throw new MojoExecutionException("Failed to create cluster manager mbean", e1); 
+         throw new MojoExecutionException("Failed to create cluster manager mbean", e1);
       }
 
       if(fork)
@@ -243,7 +244,7 @@ public class HornetQStartPlugin extends AbstractMojo
       {
          throw new MojoExecutionException(ex.toString(), ex);
       }
-      System.out.println(realm.getConstituents());
+      System.out.println(Arrays.toString(realm.getConstituents()));
       Thread.currentThread().setContextClassLoader(realm.getClassLoader());
    }
 }
