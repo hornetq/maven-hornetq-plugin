@@ -66,7 +66,7 @@ public class HornetQClientPlugin extends AbstractMojo
       catch (Exception e)
       {
          e.printStackTrace();
-         throw new MojoExecutionException(e.getMessage());
+         throw new MojoFailureException(e.getMessage());
       }
    }
 }
