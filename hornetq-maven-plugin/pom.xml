@@ -1,10 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+   <parent>
+      <groupId>org.hornetq</groupId>
+      <artifactId>hornetq-maven-plugin-pom</artifactId>
+      <version>1.1.1-SNAPSHOT</version>
+   </parent>
+
    <modelVersion>4.0.0</modelVersion>
-   <groupId>org.hornetq</groupId>
    <artifactId>hornetq-maven-plugin</artifactId>
    <packaging>maven-plugin</packaging>
-   <version>1.1.1-SNAPSHOT</version>
 
    <dependencies>
       <dependency>
@@ -20,33 +24,41 @@
       <dependency>
          <groupId>org.hornetq</groupId>
          <artifactId>hornetq-server</artifactId>
-         <version>${hornetqVersion}</version>
          <scope>provided</scope>
       </dependency>
       <dependency>
          <groupId>org.hornetq</groupId>
          <artifactId>hornetq-jms-server</artifactId>
-         <version>${hornetqVersion}</version>
          <scope>provided</scope>
       </dependency>
       <dependency>
          <groupId>io.netty</groupId>
          <artifactId>netty</artifactId>
-         <version>3.4.5.Final</version>
          <scope>provided</scope>
       </dependency>
       <dependency>
          <groupId>org.jboss.javaee</groupId>
          <artifactId>jboss-jms-api</artifactId>
-         <version>1.1.0.GA</version>
          <scope>provided</scope>
       </dependency>
       <dependency>
          <groupId>org.jboss.naming</groupId>
          <artifactId>jnpserver</artifactId>
-         <version>5.0.3.GA</version>
          <scope>provided</scope>
       </dependency>
    </dependencies>
+
+   <build>
+     <plugins>
+       <plugin>
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-compiler-plugin</artifactId>
+         <configuration>
+           <showWarnings>true</showWarnings>
+           <source>1.6</source>
+         </configuration>
+       </plugin>
+     </plugins>
+   </build>
 
 </project>
