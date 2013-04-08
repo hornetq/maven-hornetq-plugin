@@ -1,18 +1,26 @@
-This is a Maven plugin that allows you to run HornetQ servers via Maven.
+# Maven plugin to start/stop HornetQ servers.
 
-At the moment this is not available in any repository so if you want to use it or run the example you need to install it
-locally to your Maven repository by running ```mvn install```.
+### Using the latest SNAPSHOT version
 
-There are 2 examples shipped, to run these you need to cd into the example directory.
+To use the latest SNAPSHOT version: clone this project and install its artifacts to your local Maven repository with `mvn install`.
 
-To run the client example which shows how to run a standalone java class as a client simply
+### Using released versions
 
-```cd example && mvn verify -Pclient-example```
+Released versions are available at the [JBoss Maven repository]. A simple [search for hornetq-maven-plugin] shows what is available. If you have not done this already, you will need to configure the repository path in your Maven `settings.xml`.
+
+[search for hornetq-maven-plugin]: https://repository.jboss.org/nexus/index.html#nexus-search;quick~hornetq-maven-plugin
+[JBoss Maven repository]: https://repository.jboss.org/nexus/index.html
+
+## Examples
+
+To run all examples
+
+```mvn verify```
+
+To run the client example which shows how to run a standalone java class as a client
+
+```mvn verify -Pclient-example```
 
 To run the example showing an integration test run
 
-```cd example && mvn verify -Pit-example```
-
-or to run both
-
-```cd example && mvn verify -Pall```
+```mvn verify -Pit-example```
