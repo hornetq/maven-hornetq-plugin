@@ -25,10 +25,10 @@ import java.io.IOException;
 
 public interface TestClusterManagerMBean
 {
-   public int getNumNodes();
+   int getNumNodes();
 
-   public void registerNode(String nodeId, String workingDir,
+   void registerNode(String nodeId, String workingDir,
          String hornetqConfigurationDir, int jndiPort, int jndiRmiPort);
 
-   public void killNode(int i) throws IOException;
+   void killNode(int i) throws IOException;
 }
