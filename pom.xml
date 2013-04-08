@@ -2,8 +2,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
    <modelVersion>4.0.0</modelVersion>
    <groupId>org.hornetq</groupId>
-   <artifactId>hornetq-maven-plugin</artifactId>
-   <packaging>maven-plugin</packaging>
+   <artifactId>hornetq-maven-plugin-pom</artifactId>
+   <packaging>pom</packaging>
    <version>1.1.1-SNAPSHOT</version>
 
    <name>HornetQ Maven Plugin</name>
@@ -17,6 +17,7 @@
    <scm>
       <url>https://github.com/hornetq/maven-hornetq-plugin</url>
    </scm>
+
    <licenses>
       <license>
          <name>ASL 2.0</name>
@@ -48,56 +49,53 @@
       </developer>
    </developers>
 
-    <prerequisites>
+   <modules>
+     <module>examples</module>
+     <module>hornetq-maven-plugin</module>
+   </modules>
+
+   <prerequisites>
        <maven>3.0.0</maven>
     </prerequisites>
 
     <properties>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
       <hornetqVersion>2.3.0.BETA-SNAPSHOT</hornetqVersion>
     </properties>
 
-   <dependencies>
-      <dependency>
-         <groupId>org.apache.maven</groupId>
-         <artifactId>maven-plugin-api</artifactId>
-         <version>2.0</version>
-      </dependency>
-      <dependency>
-         <groupId>org.apache.maven.plugins</groupId>
-         <artifactId>maven-dependency-plugin</artifactId>
-         <version>2.0</version>
-      </dependency>
-      <dependency>
+   <dependencyManagement>
+     <dependencies>
+       <dependency>
          <groupId>org.hornetq</groupId>
          <artifactId>hornetq-server</artifactId>
          <version>${hornetqVersion}</version>
          <scope>provided</scope>
-      </dependency>
-      <dependency>
+       </dependency>
+       <dependency>
          <groupId>org.hornetq</groupId>
          <artifactId>hornetq-jms-server</artifactId>
          <version>${hornetqVersion}</version>
          <scope>provided</scope>
-      </dependency>
-      <dependency>
+       </dependency>
+       <dependency>
          <groupId>io.netty</groupId>
          <artifactId>netty</artifactId>
          <version>3.4.5.Final</version>
          <scope>provided</scope>
-      </dependency>
-      <dependency>
+       </dependency>
+       <dependency>
          <groupId>org.jboss.javaee</groupId>
          <artifactId>jboss-jms-api</artifactId>
          <version>1.1.0.GA</version>
          <scope>provided</scope>
-      </dependency>
-      <dependency>
+       </dependency>
+       <dependency>
          <groupId>org.jboss.naming</groupId>
          <artifactId>jnpserver</artifactId>
          <version>5.0.3.GA</version>
          <scope>provided</scope>
-      </dependency>
-   </dependencies>
-
+       </dependency>
+     </dependencies>
+     </dependencyManagement>
 </project>
