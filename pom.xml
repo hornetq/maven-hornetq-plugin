@@ -4,7 +4,7 @@
    <groupId>org.hornetq</groupId>
    <artifactId>hornetq-maven-plugin-pom</artifactId>
    <packaging>pom</packaging>
-   <version>1.2.0</version>
+   <version>1.2.1-SNAPSHOT</version>
 
    <name>HornetQ Maven Plugin</name>
    <description>A plugin for running a HornetQ Server</description>
