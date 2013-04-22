@@ -49,10 +49,24 @@
       </developer>
    </developers>
 
-   <modules>
-     <module>examples</module>
-     <module>hornetq-maven-plugin</module>
-   </modules>
+   <profiles>
+      <profile>
+         <id>default</id>
+         <activation>
+            <activeByDefault>true</activeByDefault>
+         </activation>
+         <modules>
+           <module>examples</module>
+           <module>hornetq-maven-plugin</module>
+         </modules>
+      </profile>
+      <profile>
+         <id>release</id>
+         <modules>
+            <module>hornetq-maven-plugin</module>
+         </modules>
+      </profile>
+   </profiles>
 
    <prerequisites>
        <maven>3.0.0</maven>
