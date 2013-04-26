@@ -276,15 +276,23 @@ public class HornetQBootstrap
          {
             try
             {
-               manager.getHornetQServer().stop(true);
-               manager.stop();
-               manager = null;
-               server = null;
-               main.stop();
-               main = null;
-               namingBean.stop();
-               namingBean = null;
-               killFile.delete();
+               if (!spawned)
+               {
+                  manager.getHornetQServer().stop(true);
+                  manager.stop();
+                  manager = null;
+                  server = null;
+                  main.stop();
+                  main = null;
+                  namingBean.stop();
+                  namingBean = null;
+                  killFile.delete();
+               }
+               else
+               {
+                  killFile.delete();
+                  Runtime.getRuntime().halt(777);
+               }
             }
             catch (Exception e)
             {
